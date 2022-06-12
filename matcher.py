@@ -16,6 +16,7 @@ import string
 import json
 from transformers import AutoTokenizer, AutoModel
 import torch
+import pymorphy2
 import re
 import numpy as np
 from ner_model import NERWrapper
@@ -127,7 +128,7 @@ class upMatcherText:
         self.ner_model.load_state_dict(torch.load(ner_ckpt, map_location='cpu'))
         self.ner_model.to(device)
         self.ner_model.eval()
-        
+        self.morph = pymorphy2.MorphAnalyzer()
         self.tokenizer = AutoTokenizer.from_pretrained(name_model)
         self.model = AutoModel.from_pretrained(name_model)
         self.model.eval()
@@ -212,7 +213,8 @@ class upMatcherText:
             outputs = self.model(**inputs)
             sentence_emb = mean_pooling(outputs, inputs['attention_mask']).detach().cpu().numpy()
             for span in spans:
-                embs[span[0]] = embs[span[0]] + sentence_emb if span[0] in embs else sentence_emb
+                span = self.morph.parse(span[0])[0]
+                embs[span] = embs[span] + sentence_emb if span in embs else sentence_emb
         return embs
             
         
