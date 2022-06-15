@@ -43,7 +43,7 @@ def main():
                 answer = f'\n\nВопрос: "{res["question"]}"'
                 answer += f'\nОтвет из заданной статьи: "{res["answer_from_article"]}"'
                 answer += f'\nОтвет из достоверной статьи: "{res["true_answer"]}"'
-                answer += f'\nСхожесть ответов: {round(res["confidence"] * 100, 1)}%\n'
+                answer += f'\nСхожесть ответов: {round((1-res["confidence"]) * 100, 1)}%\n'
                 st.text(answer)
         
 

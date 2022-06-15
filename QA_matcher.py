@@ -2,6 +2,7 @@ from pipelines import pipeline as qa_pipeline
 from transformers import pipeline
 from sentence_transformers import SentenceTransformer
 import nltk
+from scipy.spatial import distance
 from googletrans import Translator
 from sklearn.metrics.pairwise import cosine_similarity
 import re
@@ -43,8 +44,7 @@ class qaMatcher:
     def texts_similarity(self, text1, text2):
         '''Сравнение текстов (ответов) по идентичности, возвращает значение [0, 1]'''
         vecs = self.model_sim.encode([text1, text2])
-        sim = cosine_similarity(vecs)[0][1]
-        sim = (sim + 1) / 2
+        sim = distance.cosine(vecs[0], vecs[1])
         return sim
     
     def text_preprocess(self, DOCUMENT):
@@ -53,7 +53,7 @@ class qaMatcher:
         DOCUMENT = DOCUMENT.strip()
         return DOCUMENT
     
-    def predict(self, orig_text, text,  ans_conf=1e-4, score_conf=0.5):
+    def predict(self, orig_text, text,  ans_conf=1e-3, score_conf=0.1):
         text = self.text_preprocess(text)
         orig_text = self.text_preprocess(orig_text)
 
@@ -83,7 +83,7 @@ class qaMatcher:
                 'question': self.translate(question, to='ru', src='en'),
                 'true_answer': self.translate(true_ans, to='ru', src='en'),
                 'answer_from_article': self.translate(ans_to_check, to='ru', src='en'),
-                'confidence': 1-score,
+                'confidence': score,
                 'matching': score >= score_conf
             })
 
